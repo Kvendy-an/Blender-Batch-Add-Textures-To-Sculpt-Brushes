@@ -1,0 +1,172 @@
+import bpy
+import os
+
+# =====================================================
+# CONFIG
+# =====================================================
+
+SUPPORTED = {
+    ".png", ".jpg", ".jpeg",
+    ".tif", ".tiff",
+    ".bmp", ".tga",
+    ".exr", ".hdr",
+    ".webp"
+}
+
+THUMB_SIZE = 256
+
+BLEND_DIR = bpy.path.abspath("//")
+MASK_DIR = os.path.join(BLEND_DIR, "masks")
+
+
+# =====================================================
+# HELPERS
+# =====================================================
+
+def brush_exists(name):
+    return name in bpy.data.brushes
+
+
+def get_name(filepath):
+    return os.path.splitext(os.path.basename(filepath))[0]
+
+
+def find_images(folder):
+    images = []
+
+    for root, dirs, files in os.walk(folder):
+        for file in files:
+            ext = os.path.splitext(file)[1].lower()
+            if ext in SUPPORTED:
+                images.append(os.path.join(root, file))
+
+    return sorted(images)
+
+
+# -----------------------------------------------------
+# RELATIVE IMAGE LOADER
+# -----------------------------------------------------
+
+def load_image_relative(img_path):
+    img = bpy.data.images.load(img_path, check_existing=True)
+
+    # Convert to relative path (//masks/xxx.png)
+    rel_path = bpy.path.relpath(img_path)
+
+    img.filepath = rel_path
+    img.filepath_raw = rel_path
+
+    return img
+
+
+# -----------------------------------------------------
+# THUMBNAIL SYSTEM
+# -----------------------------------------------------
+
+def create_thumbnail(brush, image):
+    try:
+        thumb = image.copy()
+
+        if thumb.size[0] != THUMB_SIZE or thumb.size[1] != THUMB_SIZE:
+            thumb.scale(THUMB_SIZE, THUMB_SIZE)
+
+        brush.preview_ensure()
+
+        brush.preview.image_size = (THUMB_SIZE, THUMB_SIZE)
+        brush.preview.image_pixels_float = list(thumb.pixels)
+
+        bpy.data.images.remove(thumb)
+
+        return True
+
+    except Exception as e:
+        print(f"[THUMB FAIL] {brush.name}")
+        print(e)
+        return False
+
+
+# =====================================================
+# MAIN
+# =====================================================
+
+if not os.path.exists(MASK_DIR):
+    raise Exception(f"Folder not found:\n{MASK_DIR}")
+
+
+image_files = find_images(MASK_DIR)
+
+print("=" * 60)
+print(f"Found {len(image_files)} mask images")
+print("=" * 60)
+
+created = 0
+skipped = 0
+
+
+for img_path in image_files:
+
+    brush_name = get_name(img_path)
+
+    # Skip duplicates
+    if brush_exists(brush_name):
+        skipped += 1
+        print(f"[SKIP] {brush_name}")
+        continue
+
+    try:
+
+        # -----------------------------------------
+        # Load image
+        # -----------------------------------------
+        img = load_image_relative(img_path)
+
+        # -----------------------------------------
+        # Brush texture
+        # -----------------------------------------
+        tex = bpy.data.textures.new(
+            name=f"TEX_{brush_name}",
+            type='IMAGE'
+        )
+        tex.image = img
+
+        # -----------------------------------------
+        # Create sculpt brush
+        # -----------------------------------------
+        brush = bpy.data.brushes.new(
+            name=brush_name,
+            mode='SCULPT'
+        )
+
+        brush.texture = tex
+
+        # -----------------------------------------
+        # Sculpt settings
+        # -----------------------------------------
+        brush.stroke_method = 'ANCHORED'
+        brush.strength = 0.3
+        brush.use_frontface = True
+        brush.use_alpha = True
+
+        # -----------------------------------------
+        # Asset mark
+        # -----------------------------------------
+        brush.asset_mark()
+
+        # -----------------------------------------
+        # Thumbnail (alpha-based)
+        # -----------------------------------------
+        create_thumbnail(brush, img)
+
+        created += 1
+        print(f"[OK] {brush_name}")
+
+    except Exception as e:
+        print(f"[FAILED] {brush_name}")
+        print(e)
+
+
+print("=" * 60)
+print(f"Created : {created}")
+print(f"Skipped : {skipped}")
+print("DONE")
+print("=" * 60)
