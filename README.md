@@ -1,24 +1,27 @@
 # Blender-Batch-Add-Textures-To-Sculpt-Brushes
-A simple python script to batch apply Texture Masks to Sculpt Brushes then mark them as Asset.
+A simple Python script to batch-apply Texture Masks to Sculpt Brushes and mark them as Asset.
 
-I found many cheap brushpacks for Zbrush, and I wanted to use them with Blender, though adding them one by one to Blender is long repetitive process. so this script automated it.
+<p>
+  <img src="./Assets/Screenshot01.png" height="400" style="vertical-align:middle;" />
+</p>
+
+I found many cheap brushpacks for Zbrush, and I wanted to use them with Blender, though adding them one by one to Blender is a long repetitive process. so this script automated it.
 
 How To Use:
-1. Create a .Blend file.
-2. Create a Folder Named Masks Next to the Blend file.
-3. Add the Textures jpg/png/tiff/etc... to Masks Folder.
-4. Open the Blend file
-5. Go to the Scripting Tab.
-6. Press New.
-7. Copy and paste the Script download Script.txt.
-8. Press Run Script.
+1. Create a .blend file.
+2. Create a folder named Masks next to the .blend file.
+3. Add the textures jpg/png/tiff/etc... to Masks folder.
+4. Open the .blend file
+5. Go to the Scripting tab.
+6. Click New.
+7. Copy and paste the script from Script.txt.
+8. Click Run Script.
+- Or Download the Template.zip, which has everything setup with few masks as examples.
 
-Or use the Template.zip it has everything setup with few masks as example.
-
-The Blend file will populate with sculpt brushes. You can now in the preferences select the Blend file path as Asset Library. Make sure the Mask Folder is always with the Blend file because it use relative path for the textures.
+The .blend file will populate with sculpt brushes. Save the file, in the Preferences, select the .blend file path as an Asset Library. Make sure the Masks folder is always with the .blend file because it uses relative path for the textures.
 
 By default the created brushes are using "Anchored" method, modify the script to change how the brushes should behave.
 
 __Tested on Blender 5.1.2__
 
-__ALWAYS BE CATION RUNNING SCRIPTS MADE WITH CHATGPT!!__
+__ALWAYS BE CAUTIOUS RUNNING SCRIPTS MADE WITH CHATGPT!!__
